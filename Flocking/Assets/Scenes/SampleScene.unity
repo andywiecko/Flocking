@@ -153,11 +153,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Parameters>k__BackingField:
-    <SeparationFactor>k__BackingField: 0.335
-    <CohesionFactor>k__BackingField: 0.744
-    <AlignmentFactor>k__BackingField: 0.128
-    <InteractionRadius>k__BackingField: 1
-  <BoidsCount>k__BackingField: 1000
+    <SeparationFactor>k__BackingField: 0
+    <CohesionFactor>k__BackingField: 0.006
+    <AlignmentFactor>k__BackingField: 0.012
+    <InteractionRadius>k__BackingField: 2
+    <BoidRadius>k__BackingField: 0.1
+    <BlindAngle>k__BackingField: 1.5707964
+    <MaxSpeed>k__BackingField: 200
+  <BoidsCount>k__BackingField: 500
   scale: 5
 --- !u!4 &256028837
 Transform:

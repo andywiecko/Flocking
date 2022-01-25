@@ -29,7 +29,16 @@ namespace andywiecko.Flocking
         public float AlignmentFactor { get; private set; } = 0.5f;
 
         [field: SerializeField]
-        public float InteractionRadius { get; private set; } = 0.5f;
+        public float InteractionRadius { get; private set; } = 2f;
+
+        [field: SerializeField]
+        public float BoidRadius { get; private set; } = 0.1f;
+
+        [field: SerializeField]
+        public float BlindAngle { get; private set; } = math.PI / 2;
+
+        [field: SerializeField]
+        public float MaxSpeed { get; private set; } = 1f;
 
         public void Deconstruct(out float s, out float c, out float a) =>
             _ = (s = SeparationFactor, c = CohesionFactor, a = AlignmentFactor);
@@ -63,8 +72,6 @@ namespace andywiecko.Flocking
             Positions = new NativeArray<float2>(InitPositions(), Allocator);
             Directions = new NativeArray<Complex>(InitDirections(), Allocator);
             Neighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
-
-            Velocities.Value[0] = 1;
         }
 
         private void OnDestroy()
@@ -102,7 +109,7 @@ namespace andywiecko.Flocking
 
         private float2[] InitVelocities()
         {
-            return Enumerable.Repeat(math.float2(0, 0), BoidsCount).ToArray();
+            return Enumerable.Repeat(math.float2(0, 11), BoidsCount).ToArray();
         }
 
         private float[] InitMasses()
@@ -124,19 +131,27 @@ namespace andywiecko.Flocking
 
             for (int i = 0; i < BoidsCount; i++)
             {
-                var p = Positions.Value[i];
+                var rh = Parameters.BoidRadius;
+                var pi = Positions.Value[i];
                 Gizmos.color = Color.white;
-                var pxyz = math.float3(p, 0);
-                Gizmos.DrawSphere(pxyz, 0.1f);
+                var pxyz = math.float3(pi, 0);
+                Gizmos.DrawWireSphere(pxyz, rh);
 
                 var d = Directions.Value[i];
 
                 var right = d.Value;
                 var up = MathUtils.Rotate90CCW(right);
                 Gizmos.color = Color.red;
-                Gizmos.DrawRay(pxyz, 0.1f * math.float3(right, 0));
+                Gizmos.DrawRay(pxyz, rh * math.float3(right, 0));
                 Gizmos.color = Color.green;
-                Gizmos.DrawRay(pxyz, 0.1f * math.float3(up, 0));
+                Gizmos.DrawRay(pxyz, rh * math.float3(up, 0));
+
+                var phi = math.PI - Parameters.BlindAngle / 2;
+                var dCCW = Complex.PolarUnit(phi) * d;
+                var dCW = Complex.PolarUnit(-phi) * d;
+                Gizmos.color = Color.black;
+                Gizmos.DrawRay(pxyz, rh * math.float3(dCCW.Value, 0));
+                Gizmos.DrawRay(pxyz, rh * math.float3(dCW.Value, 0));
 
                 if (i == 0)
                 {
@@ -147,6 +162,9 @@ namespace andywiecko.Flocking
                     foreach (var j in n)
                     {
                         var pj = Positions.Value[j];
+                        var dij = Complex.NormalizeSafe(pj - pi);
+                        var arg = (Complex.Conjugate(dij) * Directions.Value[i]).Arg;
+                        Gizmos.color = math.abs(arg) > math.PI - Parameters.BlindAngle / 2f ? Color.magenta : Color.cyan;
                         Gizmos.DrawLine(pxyz, math.float3(pj, 0));
                     }
                 }

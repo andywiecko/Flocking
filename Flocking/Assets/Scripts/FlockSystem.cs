@@ -1,3 +1,4 @@
+using andywiecko.BurstMathUtils;
 using System;
 using Unity.Burst;
 using Unity.Collections;
@@ -38,9 +39,32 @@ namespace andywiecko.Flocking
         }
 
         [BurstCompile]
+        private struct UpdateDirectionsJob : IJobParallelFor
+        {
+            private NativeArray<Complex> dir;
+            private NativeArray<float2>.ReadOnly v;
+
+            public UpdateDirectionsJob(Flock flock)
+            {
+                dir = flock.Directions;
+                v = flock.Velocities.Value.AsReadOnly();
+            }
+
+            public void Execute(int i)
+            {
+                dir[i] = Complex.LookRotationSafe(v[i], dir[i].Value);
+            }
+
+            public JobHandle Schedule(JobHandle dependencies)
+            {
+                return this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
+            }
+        }
+
+        [BurstCompile]
         private struct GenerateNeighborsJob : IJobParallelFor
         {
-            private float rSq;
+            private readonly float rSq;
             private NativeArray<FixedList4096Bytes<int>> neighbors;
             private NativeArray<float2>.ReadOnly p;
 
@@ -83,17 +107,23 @@ namespace andywiecko.Flocking
             private readonly float C;
             private readonly float A;
             private NativeArray<float2>.ReadOnly p;
-            private readonly NativeArray<float2>.ReadOnly v;
+            private NativeArray<float2>.ReadOnly v;
+            private NativeArray<Complex>.ReadOnly dir;
             private NativeArray<float2> vNew;
             private NativeArray<FixedList4096Bytes<int>>.ReadOnly neighbors;
+            private readonly float boidRadius;
+            private readonly float blindAngle;
 
             public CalculatePredictedVelocitiesJob(Flock flock)
             {
                 (S, C, A) = flock.Parameters;
                 p = flock.Positions.Value.AsReadOnly();
                 v = flock.Velocities.Value.AsReadOnly();
+                dir = flock.Directions.Value.AsReadOnly();
                 vNew = flock.PredictedVelocities;
                 neighbors = flock.Neighbors.Value.AsReadOnly();
+                boidRadius = flock.Parameters.BoidRadius;
+                blindAngle = flock.Parameters.BlindAngle;
             }
 
             public void Execute(int i)
@@ -112,34 +142,48 @@ namespace andywiecko.Flocking
             private float2 GetSeparation(int i)
             {
                 var si = (float2)0;
+                var m = neighbors[i].Length;
                 foreach (var j in neighbors[i])
                 {
-                    si += p[i] - p[j];
+                    var dij = p[j] - p[i];
+                    si += math.normalizesafe(dij);
                 }
 
-                return -si;
+                return -si / m;
             }
 
             private float2 GetCohesion(int i)
             {
+                var rhSq = boidRadius * boidRadius;
                 var m = neighbors[i].Length;
+
                 float2 ci = 0;
                 foreach (var j in neighbors[i])
                 {
-                    ci += p[j];
+                    var dij = p[j] - p[i];
+                    var dijLenSq = math.lengthsq(dij);
+                    var xij = rhSq > dijLenSq ? 0 : 1;
+                    ci += xij * dij;
                 }
-                return m != 0 ? ci / m - p[i] : 0;
+                return m != 0 ? ci / m : 0;
             }
 
             private float2 GetAlignment(int i)
             {
-                var m = neighbors[i].Length;
                 float2 ai = 0;
                 foreach (var j in neighbors[i])
                 {
-                    ai += v[j];
+                    var dij = Complex.NormalizeSafe(p[j] - p[i]);
+                    var arg = (Complex.Conjugate(dij) * dir[i]).Arg;
+                    if (math.abs(arg) > math.PI - blindAngle / 2)
+                    {
+                        continue;
+                    }
+
+                    var eij = dir[j] - dir[i];
+                    ai += eij.Value;
                 }
-                return m != 0 ? ai / neighbors.Length : 0;
+                return math.normalizesafe(ai);
             }
         }
 
@@ -173,6 +217,7 @@ namespace andywiecko.Flocking
                 dependencies = new CalculatePredictedVelocitiesJob(flock).Schedule(dependencies);
                 dependencies = new UpdateVelocitiesJob(flock).Schedule(dependencies);
                 dependencies = new UpdatePositionsJob(flock, deltaTime).Schedule(dependencies);
+                dependencies = new UpdateDirectionsJob(flock).Schedule(dependencies);
             }
 
             return dependencies;

@@ -249,6 +249,34 @@ namespace andywiecko.Flocking
             public JobHandle Schedule(JobHandle dependencies) => this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
         }
 
+        [BurstCompile]
+        public struct UpdateMeshJob : IJobParallelFor
+        {
+            private NativeArray<float2>.ReadOnly p;
+            [NativeDisableParallelForRestriction]
+            private NativeArray<float3> mesh;
+            private NativeArray<Complex>.ReadOnly dir;
+            private readonly float size;
+
+            public UpdateMeshJob(Flock flock)
+            {
+                p = flock.Positions.Value.AsReadOnly();
+                mesh = flock.MeshVertices;
+                dir = flock.Directions.Value.AsReadOnly();
+                size = 0.15f;
+            }
+
+            public void Execute(int i)
+            {
+                var pi = p[i];
+                var diri = dir[i].Value;
+                var up = MathUtils.Rotate90CCW(diri);
+                mesh[3 * i + 2] = new(pi + size * diri, 0);
+                mesh[3 * i + 1] = new(pi - size * diri + size * up, 0);
+                mesh[3 * i + 0] = new(pi - size * diri - size * up, 0);
+            }
+        }
+
         public override JobHandle Schedule(JobHandle dependencies)
         {
             foreach (var flock in Solver.Flocks)
@@ -258,6 +286,7 @@ namespace andywiecko.Flocking
                 dependencies = new UpdateVelocitiesJob(flock, deltaTime).Schedule(dependencies);
                 dependencies = new UpdatePositionsJob(flock, deltaTime).Schedule(dependencies);
                 dependencies = new UpdateDirectionsJob(flock).Schedule(dependencies);
+                dependencies = new UpdateMeshJob(flock).Schedule(flock.Positions.Value.Length, 64, dependencies);
             }
 
             return dependencies;

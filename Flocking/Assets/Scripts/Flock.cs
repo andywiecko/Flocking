@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace andywiecko.Flocking
 {
@@ -20,6 +21,8 @@ namespace andywiecko.Flocking
         [SerializeField]
         public Transform targetPosition = default;
 
+        private Mesh mesh;
+
         [Header("Init")]
         [SerializeField] private float scale = 1f;
         [SerializeField] private int boidIdPreview = 0;
@@ -33,6 +36,8 @@ namespace andywiecko.Flocking
         public Ref<NativeArray<FixedList4096Bytes<int>>> ReducedNeighbors { get; private set; }
         public Ref<NativeArray<FixedList4096Bytes<int>>> EnlargedNeighbors { get; private set; }
 
+        public Ref<NativeArray<float3>> MeshVertices { get; private set; }
+
         private void Awake()
         {
             const Allocator Allocator = Allocator.Persistent;
@@ -43,6 +48,23 @@ namespace andywiecko.Flocking
             Neighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
             ReducedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
             EnlargedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
+            MeshVertices = new NativeArray<float3>(3 * BoidsCount, Allocator);
+
+            mesh = new Mesh();
+            GetComponent<MeshFilter>().mesh = mesh;
+
+            mesh.SetVertices(MeshVertices.Value);
+            mesh.SetTriangles(Enumerable.Range(0, 3 * BoidsCount).ToArray(), submesh: 0);
+            mesh.SetUVs(0, Enumerable.Repeat(new Vector2(0.5f, 0.5f), 3 * BoidsCount).ToArray());
+
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+        }
+
+        private void Update()
+        {
+            mesh.SetVertices(MeshVertices.Value); mesh.RecalculateBounds();
         }
 
         private void OnDestroy()
@@ -54,6 +76,7 @@ namespace andywiecko.Flocking
             Neighbors.Dispose();
             ReducedNeighbors.Dispose();
             EnlargedNeighbors.Dispose();
+            MeshVertices.Dispose();
         }
 
         private float2[] InitPositions()

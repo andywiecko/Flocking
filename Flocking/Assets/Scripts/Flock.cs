@@ -49,6 +49,9 @@ namespace andywiecko.Flocking
         [field: SerializeField]
         public float Mass { get; private set; } = 0.08f;
 
+        [field: SerializeField]
+        public float SpringCoefficient { get; private set; } = 0.1f;
+
         public void Deconstruct(out float s, out float c, out float a) =>
             _ = (s = SeparationFactor, c = CohesionFactor, a = AlignmentFactor);
     }
@@ -61,10 +64,13 @@ namespace andywiecko.Flocking
         [field: SerializeField, Min(0)]
         public int BoidsCount { get; private set; } = 80;
 
-        [Header("Init")]
-        [SerializeField]
-        private float scale = 1f;
+        public float2 TargetPosition => ((float3)targetPosition.position).xy;
 
+        [SerializeField]
+        public Transform targetPosition = default;
+
+        [Header("Init")]
+        [SerializeField] private float scale = 1f;
         [SerializeField] private int boidIdPreview = 0;
         [SerializeField] private bool gizmosPreview = true;
 
@@ -104,19 +110,13 @@ namespace andywiecko.Flocking
             var positions = new float2[BoidsCount];
             var seed = 35456464u;
             var random = new Unity.Mathematics.Random(seed);
-            var boidId = 0;
-            var width = (int)math.ceil(math.sqrt(BoidsCount));
-            for (int i = 0; i < width; i++)
+
+            for (int i = 0; i < BoidsCount; i++)
             {
-                for (int j = 0; j < width; j++)
-                {
-                retry:
-                    var p = scale * (2 * random.NextFloat2() - 1);
-                    if (math.length(p) > scale) goto retry;
-                    positions[boidId] = p;
-                    boidId++;
-                    if (boidId == BoidsCount) return positions;
-                }
+            retry:
+                var p = scale * (2 * random.NextFloat2() - 1);
+                if (math.length(p) > scale) goto retry;
+                positions[i] = p;
             }
 
             return positions;

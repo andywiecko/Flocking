@@ -122,6 +122,8 @@ namespace andywiecko.Flocking
             private readonly float rhSq;
             private readonly float m;
             private readonly float sigmaSq;
+            private readonly float k;
+            private readonly float2 p0;
             private readonly float tau;
             private readonly float v0;
 
@@ -142,6 +144,8 @@ namespace andywiecko.Flocking
                 v0 = flock.Parameters.TargetSpeed;
                 var sigma = flock.Parameters.Sigma;
                 sigmaSq = sigma * sigma;
+                k = flock.Parameters.SpringCoefficient;
+                p0 = flock.TargetPosition;
             }
 
             public void Execute(int i)
@@ -150,8 +154,8 @@ namespace andywiecko.Flocking
                 var fci = GetCohesionForce(i);
                 var fai = GetAlignmentForce(i);
                 var fti = GetRelaxationForce(i);
-                var fExt = -0.1f * (p[i] - float2.zero);
-                F[i] = fsi + fci + fai + fti + fExt;
+                var fki = GetSpringForce(i);
+                F[i] = fsi + fci + fai + fti + fki;
             }
 
             private float2 GetRelaxationForce(int i)
@@ -211,6 +215,11 @@ namespace andywiecko.Flocking
                     ai += eij.Value;
                 }
                 return wA * math.normalizesafe(ai);
+            }
+
+            private float2 GetSpringForce(int i)
+            {
+                return -k * (p[i] - p0);
             }
         }
 

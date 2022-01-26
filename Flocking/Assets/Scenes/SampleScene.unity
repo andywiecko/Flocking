@@ -162,13 +162,13 @@ MonoBehaviour:
     <BoidRadius>k__BackingField: 0.2
     <BlindAngle>k__BackingField: 1.5707964
     <RelaxationTime>k__BackingField: 0.005
-    <TargetSpeed>k__BackingField: 10
+    <TargetSpeed>k__BackingField: 5
     <Sigma>k__BackingField: 1.37
     <Mass>k__BackingField: 0.08
     <SpringCoefficient>k__BackingField: 0.1
   <BoidsCount>k__BackingField: 1000
   targetPosition: {fileID: 1942306957}
-  scale: 5
+  scale: 10
   boidIdPreview: 0
   gizmosPreview: 0
 --- !u!4 &256028837

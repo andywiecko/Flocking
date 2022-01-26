@@ -10,7 +10,9 @@ Things to consider:
 - [ ] Try WebGL build.
 - [ ] Optimization: spatial hashing/quad tree.
 - [ ] Obstacle avoidance.
-- [ ] Express forces in PBD framework
+- [ ] Express forces in PBD framework.
+- [ ] Additional force with respect to the defined path.
+- [ ] Add random force (should prevent from boids gluing?)
 
 ## Bibliography
 

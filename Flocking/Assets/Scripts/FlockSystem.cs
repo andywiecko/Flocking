@@ -181,7 +181,7 @@ namespace andywiecko.Flocking
                     fsi += math.normalizesafe(dij);
                 }
 
-                return -wS / n * fsi;
+                return n == 0 ? 0 : -wS / n * fsi;
             }
 
             private float2 GetCohesionForce(int i)

@@ -38,17 +38,23 @@ namespace andywiecko.Flocking
 
         public Ref<NativeArray<float3>> MeshVertices { get; private set; }
 
+        public void SetSeparation(float s) => Parameters.SeparationFactor = s;
+        public void SetCohesion(float c) => Parameters.CohesionFactor = c;
+        public void SetAlignment(float a) => Parameters.AlignmentFactor = a;
+
         private void Awake()
         {
             const Allocator Allocator = Allocator.Persistent;
-            Velocities = new NativeArray<float2>(InitVelocities(), Allocator);
+            Velocities = new NativeArray<float2>(BoidsCount, Allocator);
             Forces = new NativeArray<float2>(BoidsCount, Allocator);
-            Positions = new NativeArray<float2>(InitPositions(), Allocator);
-            Directions = new NativeArray<Complex>(InitDirections(), Allocator);
+            Positions = new NativeArray<float2>(BoidsCount, Allocator);
+            Directions = new NativeArray<Complex>(BoidsCount, Allocator);
             Neighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
             ReducedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
             EnlargedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
             MeshVertices = new NativeArray<float3>(3 * BoidsCount, Allocator);
+
+            InitializeQuantities();
 
             mesh = new Mesh();
             GetComponent<MeshFilter>().mesh = mesh;
@@ -65,6 +71,13 @@ namespace andywiecko.Flocking
         private void Update()
         {
             mesh.SetVertices(MeshVertices.Value); mesh.RecalculateBounds();
+        }
+
+        public void InitializeQuantities()
+        {
+            Positions.Value.CopyFrom(InitPositions());
+            Velocities.Value.CopyFrom(InitVelocities());
+            Directions.Value.CopyFrom(InitDirections());
         }
 
         private void OnDestroy()

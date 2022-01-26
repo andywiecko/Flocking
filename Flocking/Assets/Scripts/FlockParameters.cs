@@ -8,13 +8,13 @@ namespace andywiecko.Flocking
     public class FlockParameters
     {
         [field: SerializeField, Range(0, 10)]
-        public float SeparationFactor { get; private set; } = 1f;
+        public float SeparationFactor { get; set; } = 1f;
 
         [field: SerializeField, Range(0, 10)]
-        public float CohesionFactor { get; private set; } = 1f;
+        public float CohesionFactor { get; set; } = 1f;
 
         [field: SerializeField, Range(0, 10)]
-        public float AlignmentFactor { get; private set; } = 0.12f;
+        public float AlignmentFactor { get; set; } = 0.12f;
 
         [field: SerializeField]
         public float InteractionRadius { get; private set; } = 5f;

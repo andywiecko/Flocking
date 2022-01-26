@@ -7,65 +7,16 @@ using UnityEngine;
 
 namespace andywiecko.Flocking
 {
-    public class Ref<T> : IDisposable where T : IDisposable
-    {
-        public T Value;
-        public Ref(T t) => Value = t;
-        public void Dispose() => Value.Dispose();
-        public static implicit operator T(Ref<T> @ref) => @ref.Value;
-        public static implicit operator Ref<T>(T value) => new(value);
-    }
-
-    [Serializable]
-    public class FlockParameters
-    {
-        [field: SerializeField, Range(0, 10)]
-        public float SeparationFactor { get; private set; } = 0.5f;
-
-        [field: SerializeField, Range(0, 10)]
-        public float CohesionFactor { get; private set; } = 0.5f;
-
-        [field: SerializeField, Range(0, 10)]
-        public float AlignmentFactor { get; private set; } = 0.5f;
-
-        [field: SerializeField]
-        public float InteractionRadius { get; private set; } = 2f;
-
-        [field: SerializeField]
-        public float BoidRadius { get; private set; } = 0.1f;
-
-        [field: SerializeField]
-        public float BlindAngle { get; private set; } = math.PI / 2;
-
-        [field: SerializeField]
-        public float RelaxationTime { get; private set; } = 0.5f;
-
-        [field: SerializeField]
-        public float TargetSpeed { get; private set; } = 10;
-
-        [field: SerializeField, Min(1e-9f)]
-        public float Sigma { get; private set; } = 1;
-
-        [field: SerializeField]
-        public float Mass { get; private set; } = 0.08f;
-
-        [field: SerializeField]
-        public float SpringCoefficient { get; private set; } = 0.1f;
-
-        public void Deconstruct(out float s, out float c, out float a) =>
-            _ = (s = SeparationFactor, c = CohesionFactor, a = AlignmentFactor);
-    }
-
+    [DisallowMultipleComponent]
     public class Flock : MonoBehaviour
     {
         [field: SerializeField]
         public FlockParameters Parameters { get; private set; } = new();
 
         [field: SerializeField, Min(0)]
-        public int BoidsCount { get; private set; } = 80;
+        public int BoidsCount { get; private set; } = 1000;
 
         public float2 TargetPosition => ((float3)targetPosition.position).xy;
-
         [SerializeField]
         public Transform targetPosition = default;
 
@@ -113,9 +64,9 @@ namespace andywiecko.Flocking
 
             for (int i = 0; i < BoidsCount; i++)
             {
-            retry:
-                var p = scale * (2 * random.NextFloat2() - 1);
-                if (math.length(p) > scale) goto retry;
+                var r = random.NextFloat();
+                var dir = random.NextFloat2Direction();
+                var p = scale * r * dir;
                 positions[i] = p;
             }
 

@@ -164,7 +164,7 @@ MonoBehaviour:
     <Sigma>k__BackingField: 1.37
     <Mass>k__BackingField: 0.08
     <SpringCoefficient>k__BackingField: 0.1
-  <BoidsCount>k__BackingField: 1000
+  <BoidsCount>k__BackingField: 100
   targetPosition: {fileID: 256028837}
   scale: 5
   boidIdPreview: 0

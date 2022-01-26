@@ -129,7 +129,10 @@ namespace andywiecko.Flocking
 
             public UpdateForcesJob(Flock flock)
             {
-                (wS, wC, wA) = flock.Parameters;
+                var parameters = flock.Parameters;
+                wS = parameters.SeparationFactor;
+                wC = parameters.CohesionFactor;
+                wA = parameters.AlignmentFactor;
                 p = flock.Positions.Value.AsReadOnly();
                 v = flock.Velocities.Value.AsReadOnly();
                 dir = flock.Directions.Value.AsReadOnly();
@@ -137,14 +140,14 @@ namespace andywiecko.Flocking
                 neighbors = flock.Neighbors.Value.AsReadOnly();
                 reducedNeighbors = flock.ReducedNeighbors.Value.AsReadOnly();
                 enlargedNeighbors = flock.EnlargedNeighbors.Value.AsReadOnly();
-                rh = flock.Parameters.BoidRadius;
+                rh = parameters.BoidRadius;
                 rhSq = rh * rh;
-                m = flock.Parameters.Mass;
-                tau = flock.Parameters.RelaxationTime;
-                v0 = flock.Parameters.TargetSpeed;
-                var sigma = flock.Parameters.Sigma;
+                m = parameters.Mass;
+                tau = parameters.RelaxationTime;
+                v0 = parameters.TargetSpeed;
+                var sigma = parameters.Sigma;
                 sigmaSq = sigma * sigma;
-                k = flock.Parameters.SpringCoefficient;
+                k = parameters.SpringCoefficient;
                 p0 = flock.TargetPosition;
             }
 

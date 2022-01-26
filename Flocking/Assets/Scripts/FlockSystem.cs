@@ -1,5 +1,4 @@
 using andywiecko.BurstMathUtils;
-using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
@@ -27,15 +26,8 @@ namespace andywiecko.Flocking
                 dt = deltaTime;
             }
 
-            public void Execute(int i)
-            {
-                p[i] += v[i] * dt;
-            }
-
-            public JobHandle Schedule(JobHandle dependencies)
-            {
-                return this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
-            }
+            public void Execute(int i) => p[i] += v[i] * dt;
+            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
         }
 
         [BurstCompile]
@@ -55,10 +47,7 @@ namespace andywiecko.Flocking
                 dir[i] = Complex.LookRotationSafe(v[i], dir[i].Value);
             }
 
-            public JobHandle Schedule(JobHandle dependencies)
-            {
-                return this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
-            }
+            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
         }
 
         [BurstCompile]
@@ -66,147 +55,186 @@ namespace andywiecko.Flocking
         {
             private readonly float rSq;
             private NativeArray<FixedList4096Bytes<int>> neighbors;
+            private NativeArray<FixedList4096Bytes<int>> reducedNeighbors;
+            private NativeArray<FixedList4096Bytes<int>> enlargedNeighbors;
             private NativeArray<float2>.ReadOnly p;
+            private NativeArray<Complex>.ReadOnly dir;
+            private readonly float blindAngle;
 
             public GenerateNeighborsJob(Flock flock)
             {
                 var r = flock.Parameters.InteractionRadius;
                 rSq = r * r;
                 neighbors = flock.Neighbors.Value;
+                reducedNeighbors = flock.ReducedNeighbors.Value;
+                enlargedNeighbors = flock.EnlargedNeighbors.Value;
                 p = flock.Positions.Value.AsReadOnly();
+                dir = flock.Directions.Value.AsReadOnly();
+                blindAngle = flock.Parameters.BlindAngle;
             }
 
-            public void Execute(int i)
-            {
-                neighbors[i] = GetNeighbors(i);
-            }
+            public void Execute(int i) => (neighbors[i], reducedNeighbors[i], enlargedNeighbors[i]) = GetNeighbors(i);
+            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
 
-            public JobHandle Schedule(JobHandle dependencies)
+            private (FixedList4096Bytes<int> n, FixedList4096Bytes<int> rn, FixedList4096Bytes<int> en) GetNeighbors(int i)
             {
-                return this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
-            }
-
-            private FixedList4096Bytes<int> GetNeighbors(int i)
-            {
-                var list = new FixedList4096Bytes<int>();
+                var n = new FixedList4096Bytes<int>();
+                var rn = new FixedList4096Bytes<int>();
+                var en = new FixedList4096Bytes<int>();
                 for (int j = 0; j < p.Length; j++)
                 {
                     if (i != j && math.distancesq(p[i], p[j]) < rSq)
                     {
-                        list.Add(j);
+                        n.Add(j);
+
+                        var dij = Complex.NormalizeSafe(p[j] - p[i]);
+                        var arg = (Complex.Conjugate(dij) * dir[i]).Arg;
+                        if (math.abs(arg) < math.PI - blindAngle / 2)
+                        {
+                            rn.Add(j);
+                        }
+
+                    }
+
+                    if (i != j && math.distancesq(p[i], p[j]) < 4 * rSq)
+                    {
+                        en.Add(j);
                     }
                 }
-                return list;
+                return (n, rn, en);
             }
         }
 
         [BurstCompile]
-        private struct CalculatePredictedVelocitiesJob : IJobParallelFor
+        private struct UpdateForcesJob : IJobParallelFor
         {
-            private readonly float S;
-            private readonly float C;
-            private readonly float A;
+            private readonly float wS;
+            private readonly float wC;
+            private readonly float wA;
             private NativeArray<float2>.ReadOnly p;
             private NativeArray<float2>.ReadOnly v;
             private NativeArray<Complex>.ReadOnly dir;
-            private NativeArray<float2> vNew;
+            private NativeArray<float2> F;
             private NativeArray<FixedList4096Bytes<int>>.ReadOnly neighbors;
-            private readonly float boidRadius;
-            private readonly float blindAngle;
+            private NativeArray<FixedList4096Bytes<int>>.ReadOnly reducedNeighbors;
+            private NativeArray<FixedList4096Bytes<int>>.ReadOnly enlargedNeighbors;
+            private readonly float rh;
+            private readonly float rhSq;
+            private readonly float m;
+            private readonly float sigmaSq;
+            private readonly float tau;
+            private readonly float v0;
 
-            public CalculatePredictedVelocitiesJob(Flock flock)
+            public UpdateForcesJob(Flock flock)
             {
-                (S, C, A) = flock.Parameters;
+                (wS, wC, wA) = flock.Parameters;
                 p = flock.Positions.Value.AsReadOnly();
                 v = flock.Velocities.Value.AsReadOnly();
                 dir = flock.Directions.Value.AsReadOnly();
-                vNew = flock.PredictedVelocities;
+                F = flock.Forces;
                 neighbors = flock.Neighbors.Value.AsReadOnly();
-                boidRadius = flock.Parameters.BoidRadius;
-                blindAngle = flock.Parameters.BlindAngle;
+                reducedNeighbors = flock.ReducedNeighbors.Value.AsReadOnly();
+                enlargedNeighbors = flock.EnlargedNeighbors.Value.AsReadOnly();
+                rh = flock.Parameters.BoidRadius;
+                rhSq = rh * rh;
+                m = flock.Parameters.Mass;
+                tau = flock.Parameters.RelaxationTime;
+                v0 = flock.Parameters.TargetSpeed;
+                var sigma = flock.Parameters.Sigma;
+                sigmaSq = sigma * sigma;
             }
 
             public void Execute(int i)
             {
-                var si = GetSeparation(i);
-                var ci = GetCohesion(i);
-                var ai = GetAlignment(i);
-                vNew[i] = v[i] + S * si + C * ci + A * ai;
+                var fsi = GetSeparationForce(i);
+                var fci = GetCohesionForce(i);
+                var fai = GetAlignmentForce(i);
+                var fti = GetRelaxationForce(i);
+                var fExt = -0.1f * (p[i] - float2.zero);
+                F[i] = fsi + fci + fai + fti + fExt;
             }
 
-            public JobHandle Schedule(JobHandle dependencies)
+            private float2 GetRelaxationForce(int i)
             {
-                return this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
+                var vi = math.length(v[i]);
+                return m * (v0 - vi) * dir[i].Value / tau;
             }
 
-            private float2 GetSeparation(int i)
+            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
+
+            private float2 GetSeparationForce(int i)
             {
-                var si = (float2)0;
-                var m = neighbors[i].Length;
+                var fsi = (float2)0;
+                var n = neighbors[i].Length;
                 foreach (var j in neighbors[i])
                 {
                     var dij = p[j] - p[i];
-                    si += math.normalizesafe(dij);
+                    var dijRh = math.length(dij) - rh;
+                    var gij = dijRh <= 0 ? 1 : math.exp(-dijRh * dijRh / sigmaSq);
+                    fsi += math.normalizesafe(dij);
                 }
 
-                return -si / m;
+                return -wS / n * fsi;
             }
 
-            private float2 GetCohesion(int i)
+            private float2 GetCohesionForce(int i)
             {
-                var rhSq = boidRadius * boidRadius;
-                var m = neighbors[i].Length;
+                var n = reducedNeighbors[i].Length;
 
-                float2 ci = 0;
-                foreach (var j in neighbors[i])
+                float2 fci = 0;
+                foreach (var j in reducedNeighbors[i])
                 {
                     var dij = p[j] - p[i];
                     var dijLenSq = math.lengthsq(dij);
-                    var xij = rhSq > dijLenSq ? 0 : 1;
-                    ci += xij * dij;
+                    var xij = rhSq >= dijLenSq ? 0 : 1;
+                    fci += xij * math.normalizesafe(dij);
                 }
-                return m != 0 ? ci / m : 0;
+
+                float2 sumDij = 0;
+                var nG = enlargedNeighbors[i].Length;
+                foreach (var j in enlargedNeighbors[i])
+                {
+                    var dij = p[j] - p[i];
+                    sumDij += math.normalizesafe(dij);
+                }
+                float Ci = nG == 0 ? 0 : math.length(sumDij) / nG;
+
+                return n == 0 ? 0 : Ci * wC / n * fci;
             }
 
-            private float2 GetAlignment(int i)
+            private float2 GetAlignmentForce(int i)
             {
                 float2 ai = 0;
-                foreach (var j in neighbors[i])
+                foreach (var j in reducedNeighbors[i])
                 {
-                    var dij = Complex.NormalizeSafe(p[j] - p[i]);
-                    var arg = (Complex.Conjugate(dij) * dir[i]).Arg;
-                    if (math.abs(arg) > math.PI - blindAngle / 2)
-                    {
-                        continue;
-                    }
-
                     var eij = dir[j] - dir[i];
                     ai += eij.Value;
                 }
-                return math.normalizesafe(ai);
+                return wA * math.normalizesafe(ai);
             }
         }
 
         private struct UpdateVelocitiesJob : IJobParallelFor
         {
-            private NativeArray<float2>.ReadOnly vNew;
+            private NativeArray<float2>.ReadOnly F;
+            private readonly float m;
             private NativeArray<float2> v;
+            private readonly float dt;
 
-            public UpdateVelocitiesJob(Flock flock)
+            public UpdateVelocitiesJob(Flock flock, float deltaTime)
             {
-                vNew = flock.PredictedVelocities.Value.AsReadOnly();
+                F = flock.Forces.Value.AsReadOnly();
+                m = flock.Parameters.Mass;
                 v = flock.Velocities.Value;
+                dt = deltaTime;
             }
 
             public void Execute(int i)
             {
-                v[i] = vNew[i];
+                v[i] += F[i] / m * dt;
             }
 
-            public JobHandle Schedule(JobHandle dependencies)
-            {
-                return this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
-            }
+            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(v.Length, innerloopBatchCount: 64, dependencies);
         }
 
         public override JobHandle Schedule(JobHandle dependencies)
@@ -214,8 +242,8 @@ namespace andywiecko.Flocking
             foreach (var flock in Solver.Flocks)
             {
                 dependencies = new GenerateNeighborsJob(flock).Schedule(dependencies);
-                dependencies = new CalculatePredictedVelocitiesJob(flock).Schedule(dependencies);
-                dependencies = new UpdateVelocitiesJob(flock).Schedule(dependencies);
+                dependencies = new UpdateForcesJob(flock).Schedule(dependencies);
+                dependencies = new UpdateVelocitiesJob(flock, deltaTime).Schedule(dependencies);
                 dependencies = new UpdatePositionsJob(flock, deltaTime).Schedule(dependencies);
                 dependencies = new UpdateDirectionsJob(flock).Schedule(dependencies);
             }

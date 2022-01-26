@@ -153,15 +153,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <Parameters>k__BackingField:
-    <SeparationFactor>k__BackingField: 0
-    <CohesionFactor>k__BackingField: 0.006
-    <AlignmentFactor>k__BackingField: 0.012
-    <InteractionRadius>k__BackingField: 2
-    <BoidRadius>k__BackingField: 0.1
+    <SeparationFactor>k__BackingField: 1
+    <CohesionFactor>k__BackingField: 1
+    <AlignmentFactor>k__BackingField: 0.5
+    <InteractionRadius>k__BackingField: 5
+    <BoidRadius>k__BackingField: 0.2
     <BlindAngle>k__BackingField: 1.5707964
-    <MaxSpeed>k__BackingField: 200
-  <BoidsCount>k__BackingField: 500
+    <RelaxationTime>k__BackingField: 0.005
+    <TargetSpeed>k__BackingField: 10
+    <Sigma>k__BackingField: 1.37
+  <BoidsCount>k__BackingField: 1000
   scale: 5
+  boidIdPreview: 0
+  gizmosPreview: 0
 --- !u!4 &256028837
 Transform:
   m_ObjectHideFlags: 0
@@ -290,7 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5cc6aa78bee4ef4e8d1f1df7d988c65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deltaTime: 0.001
+  deltaTime: 0.005
 --- !u!4 &1018809926
 Transform:
   m_ObjectHideFlags: 0

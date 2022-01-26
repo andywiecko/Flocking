@@ -19,13 +19,13 @@ namespace andywiecko.Flocking
     [Serializable]
     public class FlockParameters
     {
-        [field: SerializeField, Range(0, 1)]
+        [field: SerializeField, Range(0, 10)]
         public float SeparationFactor { get; private set; } = 0.5f;
 
-        [field: SerializeField, Range(0, 1)]
+        [field: SerializeField, Range(0, 10)]
         public float CohesionFactor { get; private set; } = 0.5f;
 
-        [field: SerializeField, Range(0, 1)]
+        [field: SerializeField, Range(0, 10)]
         public float AlignmentFactor { get; private set; } = 0.5f;
 
         [field: SerializeField]
@@ -38,7 +38,16 @@ namespace andywiecko.Flocking
         public float BlindAngle { get; private set; } = math.PI / 2;
 
         [field: SerializeField]
-        public float MaxSpeed { get; private set; } = 1f;
+        public float RelaxationTime { get; private set; } = 0.5f;
+
+        [field: SerializeField]
+        public float TargetSpeed { get; private set; } = 10;
+
+        [field: SerializeField, Min(1e-9f)]
+        public float Sigma { get; private set; } = 1;
+
+        [field: SerializeField]
+        public float Mass { get; private set; } = 0.08f;
 
         public void Deconstruct(out float s, out float c, out float a) =>
             _ = (s = SeparationFactor, c = CohesionFactor, a = AlignmentFactor);
@@ -56,32 +65,38 @@ namespace andywiecko.Flocking
         [SerializeField]
         private float scale = 1f;
 
-        public Ref<NativeArray<float>> Masses { get; private set; }
+        [SerializeField] private int boidIdPreview = 0;
+        [SerializeField] private bool gizmosPreview = true;
+
         public Ref<NativeArray<float2>> Velocities { get; private set; }
-        public Ref<NativeArray<float2>> PredictedVelocities { get; private set; }
+        public Ref<NativeArray<float2>> Forces { get; private set; }
         public Ref<NativeArray<float2>> Positions { get; private set; }
         public Ref<NativeArray<Complex>> Directions { get; private set; }
         public Ref<NativeArray<FixedList4096Bytes<int>>> Neighbors { get; private set; }
+        public Ref<NativeArray<FixedList4096Bytes<int>>> ReducedNeighbors { get; private set; }
+        public Ref<NativeArray<FixedList4096Bytes<int>>> EnlargedNeighbors { get; private set; }
 
         private void Awake()
         {
             const Allocator Allocator = Allocator.Persistent;
-            Masses = new NativeArray<float>(InitMasses(), Allocator);
             Velocities = new NativeArray<float2>(InitVelocities(), Allocator);
-            PredictedVelocities = new NativeArray<float2>(Velocities.Value, Allocator);
+            Forces = new NativeArray<float2>(BoidsCount, Allocator);
             Positions = new NativeArray<float2>(InitPositions(), Allocator);
             Directions = new NativeArray<Complex>(InitDirections(), Allocator);
             Neighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
+            ReducedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
+            EnlargedNeighbors = new NativeArray<FixedList4096Bytes<int>>(BoidsCount, Allocator);
         }
 
         private void OnDestroy()
         {
-            Masses.Dispose();
             Velocities.Dispose();
-            PredictedVelocities.Dispose();
+            Forces.Dispose();
             Positions.Dispose();
             Directions.Dispose();
             Neighbors.Dispose();
+            ReducedNeighbors.Dispose();
+            EnlargedNeighbors.Dispose();
         }
 
         private float2[] InitPositions()
@@ -109,16 +124,14 @@ namespace andywiecko.Flocking
 
         private float2[] InitVelocities()
         {
-            return Enumerable.Repeat(math.float2(0, 11), BoidsCount).ToArray();
-        }
-
-        private float[] InitMasses()
-        {
-            return Enumerable.Repeat(1f, BoidsCount).ToArray();
+            //var random = new Unity.Mathematics.Random(seed: 26456456u);
+            //return Enumerable.Range(0, BoidsCount).Select(_ => Parameters.TargetSpeed * random.NextFloat2Direction()).ToArray();
+            return Enumerable.Repeat(float2.zero, BoidsCount).ToArray();
         }
 
         private Complex[] InitDirections()
         {
+            //return Velocities.Value.Select(i => Complex.LookRotation(i)).ToArray();
             return Enumerable.Repeat(Complex.LookRotation(new(0, 1)), BoidsCount).ToArray();
         }
 
@@ -153,18 +166,16 @@ namespace andywiecko.Flocking
                 Gizmos.DrawRay(pxyz, rh * math.float3(dCCW.Value, 0));
                 Gizmos.DrawRay(pxyz, rh * math.float3(dCW.Value, 0));
 
-                if (i == 0)
+                if (i == boidIdPreview && gizmosPreview)
                 {
                     Gizmos.color = Color.cyan;
                     Gizmos.DrawWireSphere(pxyz, Parameters.InteractionRadius);
                     var n = Neighbors.Value[i];
-                    Gizmos.color = Color.magenta;
+                    var rn = ReducedNeighbors.Value[i];
                     foreach (var j in n)
                     {
                         var pj = Positions.Value[j];
-                        var dij = Complex.NormalizeSafe(pj - pi);
-                        var arg = (Complex.Conjugate(dij) * Directions.Value[i]).Arg;
-                        Gizmos.color = math.abs(arg) > math.PI - Parameters.BlindAngle / 2f ? Color.magenta : Color.cyan;
+                        Gizmos.color = !rn.Contains(j) ? Color.magenta : Color.cyan;
                         Gizmos.DrawLine(pxyz, math.float3(pj, 0));
                     }
                 }

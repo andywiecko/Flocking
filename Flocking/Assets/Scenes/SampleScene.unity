@@ -476,7 +476,7 @@ MonoBehaviour:
     <BoidRadius>k__BackingField: 0.2
     <BlindAngle>k__BackingField: 1.5707964
     <RelaxationTime>k__BackingField: 0.005
-    <TargetSpeed>k__BackingField: 5
+    <TargetSpeed>k__BackingField: 15
     <Sigma>k__BackingField: 1.37
     <Mass>k__BackingField: 0.08
     <SpringCoefficient>k__BackingField: 0.1
@@ -3061,6 +3061,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1942306957}
+  - component: {fileID: 1942306958}
   m_Layer: 0
   m_Name: Target
   m_TagString: Untagged
@@ -3084,6 +3085,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1942306958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942306956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4c3dc9157557634a9aac5db6a8fc08a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2078139870
 GameObject:
   m_ObjectHideFlags: 0

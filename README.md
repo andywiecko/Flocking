@@ -1,13 +1,21 @@
 # Flocking
 
-Challange project developed during "Self Dev Days" at Laparo.[^1]'[^2]'[^3]
+Challenge _mini_ project developed during "Self Dev Days" at Laparo.
+
+Currently, this is a brute-force _flocking model_ implementation.
+Possible upgrades are planned to do during the next "Self Dev Days".
+The model is more or less based on these papers:[^1],[^2], and [^3].
+
+Check build (Windows): **TODO**
+
+Check browser version: **TODO** (<span style="color:red">WARNING:</span> _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
 
 ## TODO
 
 Things to consider:
 
 - [ ] Try ECS.
-- [ ] Try WebGL build.
+- [X] ~~Try WebGL build.~~
 - [ ] Optimization: spatial hashing/quad tree.
 - [ ] Obstacle avoidance.
 - [ ] Express forces in PBD framework.

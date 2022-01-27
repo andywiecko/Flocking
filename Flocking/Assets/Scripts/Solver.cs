@@ -19,6 +19,8 @@ namespace andywiecko.Flocking
 
         private void Start()
         {
+            Application.targetFrameRate = 300;
+
             Flocks = FindObjectsOfType<Flock>();
             systems = FindObjectsOfType<BaseSystem>();
             systems = systems.OrderBy(s => s.Priority).ToArray();

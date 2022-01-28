@@ -1,14 +1,14 @@
 {
   "dependencies": {
     "com.andywiecko.burst.mathutils": {
-      "version": "https://github.com/andywiecko/BurstMathUtils.git",
+      "version": "https://github.com/andywiecko/BurstMathUtils.git#v1.1.0",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.burst": "1.6.3",
         "com.unity.jobs": "0.11.0-preview.6"
       },
-      "hash": "2042f075bf52cac8062cbe0d802f798b472a5f5f"
+      "hash": "56cc4559f26eb46becc95fed69d2096a3fec45dd"
     },
     "com.unity.2d.animation": {
       "version": "7.0.0",

@@ -1,14 +1,24 @@
 # Flocking
 
+![example](Documentation~/example.png)
+
 Challenge _mini_ project developed during "Self Dev Days" at Laparo.
 
 Currently, this is a brute-force _flocking model_ implementation.
 Possible upgrades are planned to do during the next "Self Dev Days".
 The model is more or less based on these papers:[^1],[^2], and [^3].
 
-Check build (Windows): **TODO**
+Example **VIDEO**. TODO
 
-Check browser version: **TODO** (<span style="color:red">WARNING:</span> _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
+Download build (for Windows) demo: **TODO**
+
+Check web demo browser version: **TODO** 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
+
+## Dependencies
+
+- [`Unity.Burst`](https://docs.unity3d.com/Packages/com.unity.burst@1.6/manual/index.html)
+- [`Unity.Jobs`](https://docs.unity3d.com/Manual/JobSystem.html)
+- [`andywiecko.BurstMathUtils`](https://github.com/andywiecko/BurstMathUtils.git)
 
 ## TODO
 

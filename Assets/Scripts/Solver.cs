@@ -6,7 +6,7 @@ namespace andywiecko.Flocking
 {
     public abstract class BaseSystem : MonoBehaviour
     {
-        [SerializeField] public int Priority { get; private set; } = 0;
+        [field: SerializeField] public int Priority { get; private set; } = 0;
         public abstract JobHandle Schedule(JobHandle dependencies);
     }
 

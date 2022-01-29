@@ -4,13 +4,21 @@ using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 namespace andywiecko.Flocking
 {
     [DisallowMultipleComponent]
     public class Flock : MonoBehaviour
     {
+        public Ref<NativeArray<float2>> Velocities { get; private set; }
+        public Ref<NativeArray<float2>> Forces { get; private set; }
+        public Ref<NativeArray<float2>> Positions { get; private set; }
+        public Ref<NativeArray<Complex>> Directions { get; private set; }
+        public Ref<NativeArray<FixedList4096Bytes<int>>> Neighbors { get; private set; }
+        public Ref<NativeArray<FixedList4096Bytes<int>>> ReducedNeighbors { get; private set; }
+        public Ref<NativeArray<FixedList4096Bytes<int>>> EnlargedNeighbors { get; private set; }
+        public Ref<NativeArray<float3>> MeshVertices { get; private set; }
+
         [field: SerializeField]
         public FlockParameters Parameters { get; private set; } = new();
 
@@ -21,22 +29,12 @@ namespace andywiecko.Flocking
         [SerializeField]
         public Transform targetPosition = default;
 
-        private Mesh mesh;
-
-        [Header("Init")]
+        [Header("Initial & editor settings")]
         [SerializeField] private float scale = 1f;
         [SerializeField] private int boidIdPreview = 0;
         [SerializeField] private bool gizmosPreview = true;
 
-        public Ref<NativeArray<float2>> Velocities { get; private set; }
-        public Ref<NativeArray<float2>> Forces { get; private set; }
-        public Ref<NativeArray<float2>> Positions { get; private set; }
-        public Ref<NativeArray<Complex>> Directions { get; private set; }
-        public Ref<NativeArray<FixedList4096Bytes<int>>> Neighbors { get; private set; }
-        public Ref<NativeArray<FixedList4096Bytes<int>>> ReducedNeighbors { get; private set; }
-        public Ref<NativeArray<FixedList4096Bytes<int>>> EnlargedNeighbors { get; private set; }
-
-        public Ref<NativeArray<float3>> MeshVertices { get; private set; }
+        private Mesh mesh;
 
         public void SetSeparation(float s) => Parameters.SeparationFactor = s;
         public void SetCohesion(float c) => Parameters.CohesionFactor = c;

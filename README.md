@@ -8,11 +8,11 @@ Currently, this is a brute-force _flocking model_ implementation.
 Possible upgrades are planned to do during the next "Self Dev Days".
 The model is more or less based on these papers:[^1],[^2], and [^3].
 
-[![Preview at YouTube](https://img.youtube.com/vi/hJ5NsDk36LE/0.jpg)](https://www.youtube.com/watch?v=hJ5NsDk36LE)
+## Demos
 
-Download build (for Windows) demo: **TODO**
-
-Check web demo browser version: **TODO** 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
+- See [**YouTube Preview:**](https://www.youtube.com/watch?v=hJ5NsDk36LE)
+- [**Download build**](https://github.com/andywiecko/Flocking/releases/download/v0.1.0/Win64.zip) (for Windows)
+- Check [**WebGL demo**](https://andywiecko.github.io/flocking) in your browser! 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
 
 ## Dependencies
 

@@ -10,9 +10,9 @@ The model is more or less based on these papers:[^1],[^2], and [^3].
 
 ## Demos
 
-- See [**YouTube Preview:**](https://www.youtube.com/watch?v=hJ5NsDk36LE)
-- [**Download build**](https://github.com/andywiecko/Flocking/releases/download/v0.1.0/Win64.zip) (for Windows)
-- Check [**WebGL demo**](https://andywiecko.github.io/Flocking) in your browser! 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._)
+- See [**YouTube Preview**](https://www.youtube.com/watch?v=hJ5NsDk36LE).
+- [**Download build**](https://github.com/andywiecko/Flocking/releases/download/v0.1.0/Win64.zip) (for Windows).
+- Check [**WebGL demo**](https://andywiecko.github.io/Flocking) in your browser! 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._
 
 ## Dependencies
 

@@ -1,10 +1,14 @@
 # Flocking
 
+![example](Documentation~/example.png)
+
 Challenge _mini_ project developed during "Self Dev Days" at Laparo.
 
 Currently, this is a brute-force _flocking model_ implementation.
 Possible upgrades are planned to do during the next "Self Dev Days".
 The model is more or less based on these papers:[^1],[^2], and [^3].
+
+Example **VIDEO**. TODO
 
 Download build (for Windows) demo: **TODO**
 

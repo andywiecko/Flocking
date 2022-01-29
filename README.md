@@ -8,7 +8,7 @@ Currently, this is a brute-force _flocking model_ implementation.
 Possible upgrades are planned to do during the next "Self Dev Days".
 The model is more or less based on these papers:[^1],[^2], and [^3].
 
-Example **VIDEO**. TODO
+[![Preview at YouTube](https://img.youtube.com/vi/hJ5NsDk36LE/0.jpg)](https://www.youtube.com/watch?v=hJ5NsDk36LE)
 
 Download build (for Windows) demo: **TODO**
 

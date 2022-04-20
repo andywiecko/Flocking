@@ -14,11 +14,23 @@ The model is more or less based on these papers:[^1],[^2], and [^3].
 - [**Download build**](https://github.com/andywiecko/Flocking/releases/download/v0.1.0/Win64.zip) (for Windows).
 - Check [**WebGL demo**](https://andywiecko.github.io/Flocking) in your browser! 🔴WARNING🔴 _Currently Burst is not supported for WebGL builds, maximum boids count is reduced._
 
+## Acceleration with 2d tree
+
+Ranges queries are accelerated using `Native2dTree`.
+Performance comparison between brutforce approach and _k_-d tree can be found below.
+
+![flocking-with-kdtree](Documentation~/flocking-with-kdtree.svg)
+
+Animated _k_-d tree preview on gizmos can be found below.
+
+![kd-tree-gif](Documentation~/kd-tree-gif.gif)
+
 ## Dependencies
 
 - [`Unity.Burst`](https://docs.unity3d.com/Packages/com.unity.burst@1.6/manual/index.html)
 - [`Unity.Jobs`](https://docs.unity3d.com/Manual/JobSystem.html)
 - [`andywiecko.BurstMathUtils`](https://github.com/andywiecko/BurstMathUtils.git)
+- [`andywiecko.BurstCollections`](https://github.com/andywiecko/BurstCollections.git)
 
 ## TODO
 
@@ -26,7 +38,7 @@ Things to consider:
 
 - [ ] Try ECS.
 - [X] ~~Try WebGL build.~~
-- [ ] Optimization: spatial hashing/quad tree.
+- [X] ~~Optimization: spatial hashing/quad tree.~~
 - [ ] Obstacle avoidance.
 - [ ] Express forces in PBD framework.
 - [ ] Additional force with respect to the defined path.

@@ -13,6 +13,7 @@ namespace andywiecko.Flocking
     public class Solver : MonoBehaviour
     {
         public static Flock[] Flocks;
+        public static Flock2dTree[] Trees;
         private BaseSystem[] systems;
 
         private JobHandle dependencies;
@@ -22,6 +23,7 @@ namespace andywiecko.Flocking
             Application.targetFrameRate = 300;
 
             Flocks = FindObjectsOfType<Flock>();
+            Trees = FindObjectsOfType<Flock2dTree>();
             systems = FindObjectsOfType<BaseSystem>();
             systems = systems.OrderBy(s => s.Priority).ToArray();
         }

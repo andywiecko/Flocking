@@ -447,6 +447,7 @@ GameObject:
   m_Component:
   - component: {fileID: 256028837}
   - component: {fileID: 256028836}
+  - component: {fileID: 256028840}
   - component: {fileID: 256028839}
   - component: {fileID: 256028838}
   m_Layer: 0
@@ -472,7 +473,7 @@ MonoBehaviour:
     <SeparationFactor>k__BackingField: 1
     <CohesionFactor>k__BackingField: 1
     <AlignmentFactor>k__BackingField: 0.5
-    <InteractionRadius>k__BackingField: 5
+    <InteractionRadius>k__BackingField: 2
     <BoidRadius>k__BackingField: 0.2
     <BlindAngle>k__BackingField: 1.5707964
     <RelaxationTime>k__BackingField: 0.005
@@ -480,9 +481,9 @@ MonoBehaviour:
     <Sigma>k__BackingField: 1.37
     <Mass>k__BackingField: 0.08
     <SpringCoefficient>k__BackingField: 0.1
-  <BoidsCount>k__BackingField: 1000
+  <BoidsCount>k__BackingField: 5000
   targetPosition: {fileID: 1942306957}
-  scale: 10
+  scale: 50
   boidIdPreview: 0
   gizmosPreview: 0
 --- !u!4 &256028837
@@ -550,6 +551,18 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 256028835}
   m_Mesh: {fileID: 0}
+--- !u!114 &256028840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 256028835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77ea60e6048d98447b6671c229b1c0de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &298326323
 GameObject:
   m_ObjectHideFlags: 0
@@ -1113,7 +1126,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 20
+  orthographic size: 50
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1954,6 +1967,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1018809926}
   - component: {fileID: 1018809925}
+  - component: {fileID: 1018809927}
   m_Layer: 0
   m_Name: Systems
   m_TagString: Untagged
@@ -1973,6 +1987,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5cc6aa78bee4ef4e8d1f1df7d988c65, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <Priority>k__BackingField: 1
   deltaTime: 0.005
 --- !u!4 &1018809926
 Transform:
@@ -1989,6 +2004,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1018809927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1018809924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14b84c1058b5b1140bbca9992a12f3ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <Priority>k__BackingField: 0
+  runEveryStep: 8
 --- !u!1 &1059297405
 GameObject:
   m_ObjectHideFlags: 0

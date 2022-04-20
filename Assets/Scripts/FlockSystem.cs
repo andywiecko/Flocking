@@ -51,61 +51,6 @@ namespace andywiecko.Flocking
         }
 
         [BurstCompile]
-        private struct GenerateNeighborsJob : IJobParallelFor
-        {
-            private readonly float rSq;
-            private NativeArray<FixedList4096Bytes<int>> neighbors;
-            private NativeArray<FixedList4096Bytes<int>> reducedNeighbors;
-            private NativeArray<FixedList4096Bytes<int>> enlargedNeighbors;
-            private NativeArray<float2>.ReadOnly p;
-            private NativeArray<Complex>.ReadOnly dir;
-            private readonly float blindAngle;
-
-            public GenerateNeighborsJob(Flock flock)
-            {
-                var r = flock.Parameters.InteractionRadius;
-                rSq = r * r;
-                neighbors = flock.Neighbors.Value;
-                reducedNeighbors = flock.ReducedNeighbors.Value;
-                enlargedNeighbors = flock.EnlargedNeighbors.Value;
-                p = flock.Positions.Value.AsReadOnly();
-                dir = flock.Directions.Value.AsReadOnly();
-                blindAngle = flock.Parameters.BlindAngle;
-            }
-
-            public void Execute(int i) => (neighbors[i], reducedNeighbors[i], enlargedNeighbors[i]) = GetNeighbors(i);
-            public JobHandle Schedule(JobHandle dependencies) => this.Schedule(p.Length, innerloopBatchCount: 64, dependencies);
-
-            private (FixedList4096Bytes<int> n, FixedList4096Bytes<int> rn, FixedList4096Bytes<int> en) GetNeighbors(int i)
-            {
-                var n = new FixedList4096Bytes<int>();
-                var rn = new FixedList4096Bytes<int>();
-                var en = new FixedList4096Bytes<int>();
-                for (int j = 0; j < p.Length; j++)
-                {
-                    if (i != j && math.distancesq(p[i], p[j]) < rSq)
-                    {
-                        n.Add(j);
-
-                        var dij = Complex.NormalizeSafe(p[j] - p[i]);
-                        var arg = (Complex.Conjugate(dij) * dir[i]).Arg;
-                        if (math.abs(arg) < math.PI - blindAngle / 2)
-                        {
-                            rn.Add(j);
-                        }
-
-                    }
-
-                    if (i != j && math.distancesq(p[i], p[j]) < 4 * rSq)
-                    {
-                        en.Add(j);
-                    }
-                }
-                return (n, rn, en);
-            }
-        }
-
-        [BurstCompile]
         private struct UpdateForcesJob : IJobParallelFor
         {
             private readonly float wS;
@@ -281,7 +226,6 @@ namespace andywiecko.Flocking
         {
             foreach (var flock in Solver.Flocks)
             {
-                dependencies = new GenerateNeighborsJob(flock).Schedule(dependencies);
                 dependencies = new UpdateForcesJob(flock).Schedule(dependencies);
                 dependencies = new UpdateVelocitiesJob(flock, deltaTime).Schedule(dependencies);
                 dependencies = new UpdatePositionsJob(flock, deltaTime).Schedule(dependencies);

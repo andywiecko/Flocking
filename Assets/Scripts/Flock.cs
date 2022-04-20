@@ -8,6 +8,7 @@ using UnityEngine;
 namespace andywiecko.Flocking
 {
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(Flock2dTree))]
     public class Flock : MonoBehaviour
     {
         public Ref<NativeArray<float2>> Velocities { get; private set; }

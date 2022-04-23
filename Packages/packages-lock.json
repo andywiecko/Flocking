@@ -1,14 +1,14 @@
 {
   "dependencies": {
     "com.andywiecko.burst.collections": {
-      "version": "https://github.com/andywiecko/BurstCollections.git",
+      "version": "https://github.com/andywiecko/BurstCollections.git#v1.4.0",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.burst": "1.6.3",
         "com.unity.jobs": "0.11.0-preview.6"
       },
-      "hash": "0b6e1609455e67f1785a60e5be1212ad46991fb5"
+      "hash": "f35c13cdeaaba73e355e575027eb0dab67f4a75d"
     },
     "com.andywiecko.burst.mathutils": {
       "version": "https://github.com/andywiecko/BurstMathUtils.git#v1.1.0",
